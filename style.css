@@ -33,7 +33,7 @@ h1 {
     text-align: center;
 }
 
-/* 조건 반영: 날짜 네비게이션 바 디자인 */
+/* 날짜 네비게이션 바 디자인 */
 .date-navigation {
     display: flex;
     justify-content: space-between;

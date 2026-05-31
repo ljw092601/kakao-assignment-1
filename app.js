@@ -1,10 +1,11 @@
-// 할 일 목록 데이터를 관리할 배열 상태 (State)
-let todos = [];
+// 조건 반영: 로컬스토리지에서 기존 데이터를 불러와서 상태 정의 (데이터가 없으면 빈 배열 생성)
+// JSON.parse를 사용하여 문자열 직렬화 데이터를 객체 배열로 역직렬화 변환
+let todos = JSON.parse(localStorage.getItem('todos')) || [];
 
 // 필터링 기준 상태 변수 ('all', 'active', 'completed')
 let currentFilter = 'all';
 
-// 조건 반영: 현재 앱에서 선택 및 추적 중인 날짜 객체 상태 변수
+// 현재 앱에서 선택 및 추적 중인 날짜 객체 상태 변수
 let selectedDate = new Date();
 
 // 제어할 DOM 요소 선택
@@ -13,7 +14,7 @@ const todoInput = document.getElementById('todo-input');
 const todoList = document.getElementById('todo-list');
 const tabButtons = document.querySelectorAll('.tab-btn');
 
-// 조건 반영: 날짜 제어 노드 선택
+// 날짜 제어 노드 선택
 const dateDisplay = document.getElementById('date-display');
 const prevDateBtn = document.getElementById('prev-date-btn');
 const nextDateBtn = document.getElementById('next-date-btn');
@@ -26,16 +27,21 @@ function init() {
         button.addEventListener('click', changeFilter);
     });
 
-    // 조건 반영: 날짜 조절 버튼에 이벤트 바인딩
     prevDateBtn.addEventListener('click', () => handleDateNavigation(-1));
     nextDateBtn.addEventListener('click', () => handleDateNavigation(1));
 
-    // 최초 실행 시 현재 날짜 출력 및 목록 렌더링
+    // 최초 실행 시 현재 날짜 출력 및 목록 렌더링 (로컬스토리지 파싱 데이터 기반)
     updateDateDisplay();
     renderTodos();
 }
 
-// 조건 반영: 데이터 비교용 고유 날짜 포맷 문자열을 반환하는 헬퍼 함수 (예: "2026-05-31")
+// 조건 반영: 변경된 todos 배열 상태를 로컬스토리지에 최신화하는 함수
+// JSON.stringify를 사용하여 배열 객체를 텍스트 문자열 포맷으로 직렬화 변환하여 저장
+function saveToLocalStorage() {
+    localStorage.setItem('todos', JSON.stringify(todos));
+}
+
+// 데이터 비교용 고유 날짜 포맷 문자열을 반환하는 헬퍼 함수 (예: "2026-05-31")
 function getFormattedDateString(dateObj) {
     const year = dateObj.getFullYear();
     const month = String(dateObj.getMonth() + 1).padStart(2, '0');
@@ -43,21 +49,19 @@ function getFormattedDateString(dateObj) {
     return `${year}-${month}-${day}`;
 }
 
-// 조건 반영: 화면 상단 헤더 영역에 날짜를 포맷팅하여 표시하는 함수
+// 화면 상단 헤더 영역에 날짜를 포맷팅하여 표시하는 함수
 function updateDateDisplay() {
     const year = selectedDate.getFullYear();
     const month = selectedDate.getMonth() + 1;
     const day = selectedDate.getDate();
     
-    // 요일 배열 생성
     const dayNames = ['일', '월', '화', '수', '목', '금', '토'];
     const dayName = dayNames[selectedDate.getDay()];
 
-    // UI 텍스트 업데이트 변경
     dateDisplay.textContent = `${year}년 ${month}월 ${day}일 (${dayName})`;
 }
 
-// 조건 반영: 이전(-1) / 다음(1) 버튼 클릭 시 날짜를 계산하고 동기화하는 함수
+// 이전(-1) / 다음(1) 버튼 클릭 시 날짜를 계산하고 동기화하는 함수
 function handleDateNavigation(offsetDays) {
     selectedDate.setDate(selectedDate.getDate() + offsetDays);
     updateDateDisplay();
@@ -75,16 +79,17 @@ function addTodo(e) {
         return;
     }
 
-    // 새 Todo 객체 모델 생성
     const newTodo = {
         id: Date.now(),
         text: todoText,
         completed: false,
-        // 조건 반영: 생성 시점에 상단에 '현재 선택된 날짜'의 포맷 문자열을 기록
         date: getFormattedDateString(selectedDate)
     };
 
     todos.push(newTodo);
+    
+    // 조건 반영: 상태 추가 후 로컬스토리지 동기화 및 렌더링
+    saveToLocalStorage();
     renderTodos();
 
     todoInput.value = '';
@@ -99,6 +104,9 @@ function toggleComplete(id) {
         }
         return todo;
     });
+    
+    // 조건 반영: 상태 변경 후 로컬스토리지 동기화 및 렌더링
+    saveToLocalStorage();
     renderTodos();
 }
 
@@ -122,12 +130,18 @@ function editTodo(id) {
         }
         return todo;
     });
+    
+    // 조건 반영: 상태 수정 후 로컬스토리지 동기화 및 렌더링
+    saveToLocalStorage();
     renderTodos();
 }
 
 // Todo를 삭제하는 함수
 function deleteTodo(id) {
     todos = todos.filter(todo => todo.id !== id);
+    
+    // 조건 반영: 상태 삭제 후 로컬스토리지 동기화 및 렌더링
+    saveToLocalStorage();
     renderTodos();
 }
 
@@ -147,17 +161,14 @@ function changeFilter(e) {
 function renderTodos() {
     todoList.innerHTML = '';
 
-    // 조건 반영: 현재 선택된 날짜의 포맷팅 문자열 추출
     const targetDateStr = getFormattedDateString(selectedDate);
 
-    // 조건부 2중 필터링 실행 (1차: 날짜 일치 여부 확인, 2차: 전체/진행중/완료 상태 확인)
+    // 2중 필터링 실행 (1차: 날짜 일치 여부 확인, 2차: 전체/진행중/완료 상태 확인)
     const filteredTodos = todos.filter(todo => {
-        // 첫 번째 조건: 등록된 Todo 날짜가 현재 보는 날짜와 다르면 렌더링에서 배제
         if (todo.date !== targetDateStr) {
             return false;
         }
 
-        // 두 번째 조건: 기존 상태 탭 필터링 규칙 적용
         if (currentFilter === 'active') {
             return !todo.completed;
         } else if (currentFilter === 'completed') {
@@ -166,7 +177,6 @@ function renderTodos() {
         return true;
     });
 
-    // 최종 필터링된 데이터만 순회하며 DOM 요소 생성
     filteredTodos.forEach(todo => {
         const li = document.createElement('li');
         li.className = 'todo-item';
