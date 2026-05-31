@@ -13,10 +13,13 @@
     <div class="todo-container">
         <h1>Todo List</h1>
 
-        <div class="date-navigation">
-            <button id="prev-date-btn" class="nav-btn" aria-label="이전 날짜">&lt;</button>
-            <span id="date-display"></span>
-            <button id="next-date-btn" class="nav-btn" aria-label="다음 날짜">&gt;</button>
+        <div class="week-navigation-container">
+            <div class="week-header">
+                <button id="prev-week-btn" class="nav-btn" aria-label="이전 주">&lt;</button>
+                <span id="month-display"></span>
+                <button id="next-week-btn" class="nav-btn" aria-label="다음 주">&gt;</button>
+            </div>
+            <div id="weekly-calendar" class="weekly-calendar"></div>
         </div>
         
         <form id="todo-form" class="todo-form">
