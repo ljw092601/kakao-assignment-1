@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Minimalist Todo App</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="todo-container">
+        <h1>Todo List</h1>
+        
+        <form id="todo-form" class="todo-form">
+            <input type="text" id="todo-input" placeholder="할 일을 입력하세요..." autocomplete="off">
+            <button type="submit" id="add-btn">추가</button>
+        </form>
+        
+        <ul id="todo-list" class="todo-list"></ul>
+    </div>
+    
+    <script src="app.js"></script>
+</body>
+</html>
