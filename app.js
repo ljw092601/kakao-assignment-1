@@ -1,34 +1,75 @@
 // 할 일 목록 데이터를 관리할 배열 상태 (State)
 let todos = [];
 
-// 조건 반영: 현재 선택된 필터 상태를 추적할 상태 변수 (기본값: 'all')
+// 필터링 기준 상태 변수 ('all', 'active', 'completed')
 let currentFilter = 'all';
+
+// 조건 반영: 현재 앱에서 선택 및 추적 중인 날짜 객체 상태 변수
+let selectedDate = new Date();
 
 // 제어할 DOM 요소 선택
 const todoForm = document.getElementById('todo-form');
 const todoInput = document.getElementById('todo-input');
 const todoList = document.getElementById('todo-list');
-
-// 조건 반영: 필터 버튼 요소들을 일괄 선택
 const tabButtons = document.querySelectorAll('.tab-btn');
+
+// 조건 반영: 날짜 제어 노드 선택
+const dateDisplay = document.getElementById('date-display');
+const prevDateBtn = document.getElementById('prev-date-btn');
+const nextDateBtn = document.getElementById('next-date-btn');
 
 // 앱 초기 설정 및 이벤트 리스너 등록
 function init() {
     todoForm.addEventListener('submit', addTodo);
     
-    // 조건 반영: 각 탭 버튼 클릭 시 필터 변경 함수 연결
     tabButtons.forEach(button => {
         button.addEventListener('click', changeFilter);
     });
+
+    // 조건 반영: 날짜 조절 버튼에 이벤트 바인딩
+    prevDateBtn.addEventListener('click', () => handleDateNavigation(-1));
+    nextDateBtn.addEventListener('click', () => handleDateNavigation(1));
+
+    // 최초 실행 시 현재 날짜 출력 및 목록 렌더링
+    updateDateDisplay();
+    renderTodos();
+}
+
+// 조건 반영: 데이터 비교용 고유 날짜 포맷 문자열을 반환하는 헬퍼 함수 (예: "2026-05-31")
+function getFormattedDateString(dateObj) {
+    const year = dateObj.getFullYear();
+    const month = String(dateObj.getMonth() + 1).padStart(2, '0');
+    const day = String(dateObj.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
+}
+
+// 조건 반영: 화면 상단 헤더 영역에 날짜를 포맷팅하여 표시하는 함수
+function updateDateDisplay() {
+    const year = selectedDate.getFullYear();
+    const month = selectedDate.getMonth() + 1;
+    const day = selectedDate.getDate();
+    
+    // 요일 배열 생성
+    const dayNames = ['일', '월', '화', '수', '목', '금', '토'];
+    const dayName = dayNames[selectedDate.getDay()];
+
+    // UI 텍스트 업데이트 변경
+    dateDisplay.textContent = `${year}년 ${month}월 ${day}일 (${dayName})`;
+}
+
+// 조건 반영: 이전(-1) / 다음(1) 버튼 클릭 시 날짜를 계산하고 동기화하는 함수
+function handleDateNavigation(offsetDays) {
+    selectedDate.setDate(selectedDate.getDate() + offsetDays);
+    updateDateDisplay();
+    renderTodos(); // 날짜가 바뀌었으므로 할 일 목록 재필터링 렌더링
 }
 
 // 새로운 Todo를 추가하는 함수
 function addTodo(e) {
-    e.preventDefault(); // 폼 제출 시 발생하는 페이지 새로고침 방지
+    e.preventDefault();
 
     const todoText = todoInput.value.trim();
 
-    // 입력값이 비어있을 경우 예외 처리
     if (todoText === '') {
         alert('할 일을 입력해주세요!');
         return;
@@ -36,16 +77,16 @@ function addTodo(e) {
 
     // 새 Todo 객체 모델 생성
     const newTodo = {
-        id: Date.now(), // 고유 식별자로 현재 타임스탬프 사용
+        id: Date.now(),
         text: todoText,
-        completed: false // 기본값은 미완료 상태
+        completed: false,
+        // 조건 반영: 생성 시점에 상단에 '현재 선택된 날짜'의 포맷 문자열을 기록
+        date: getFormattedDateString(selectedDate)
     };
 
-    // 데이터 상태 업데이트 및 화면 재렌더링
     todos.push(newTodo);
     renderTodos();
 
-    // 입력창 초기화 및 포커스 유지
     todoInput.value = '';
     todoInput.focus();
 }
@@ -90,81 +131,76 @@ function deleteTodo(id) {
     renderTodos();
 }
 
-// 조건 반영: 선택된 필터 상태를 변경하고 UI 탭 스타일을 전환하는 함수
+// 선택된 필터 상태를 변경하고 UI 탭 스타일을 전환하는 함수
 function changeFilter(e) {
-    // 탭 버튼의 data-filter 속성 값('all', 'active', 'completed')을 읽어옴
     currentFilter = e.target.dataset.filter;
 
-    // 모든 탭에서 active 클래스를 지워 비활성화 스타일 처리
     tabButtons.forEach(button => {
         button.classList.remove('active');
     });
 
-    // 클릭된 현재 탭에만 active 클래스를 추가하여 시각적 강조 효과 적용
     e.target.classList.add('active');
-
-    // 필터링 규칙이 바뀌었으므로 화면 리스트 재렌더링
     renderTodos();
 }
 
-// 데이터 상태와 필터 기준을 바탕으로 화면에 리스트를 그려주는 렌더링 함수
+// 데이터 상태, 필터 기준, 그리고 날짜 동기화를 적용해 리스트를 그려주는 렌더링 함수
 function renderTodos() {
-    // 기존의 목록 요소들을 깨끗하게 비움
     todoList.innerHTML = '';
 
-    // 조건 반영: 현재 설정된 currentFilter 값에 의거하여 노출할 배열 필터링
+    // 조건 반영: 현재 선택된 날짜의 포맷팅 문자열 추출
+    const targetDateStr = getFormattedDateString(selectedDate);
+
+    // 조건부 2중 필터링 실행 (1차: 날짜 일치 여부 확인, 2차: 전체/진행중/완료 상태 확인)
     const filteredTodos = todos.filter(todo => {
-        if (currentFilter === 'active') {
-            return !todo.completed; // 진행 중: completed가 false인 항목만 반환
-        } else if (currentFilter === 'completed') {
-            return todo.completed;  // 완료: completed가 true인 항목만 반환
+        // 첫 번째 조건: 등록된 Todo 날짜가 현재 보는 날짜와 다르면 렌더링에서 배제
+        if (todo.date !== targetDateStr) {
+            return false;
         }
-        return true; // 전체(all): 필터링 없이 그대로 모두 반환
+
+        // 두 번째 조건: 기존 상태 탭 필터링 규칙 적용
+        if (currentFilter === 'active') {
+            return !todo.completed;
+        } else if (currentFilter === 'completed') {
+            return todo.completed;
+        }
+        return true;
     });
 
-    // 필터링이 완료된 배열을 순회하며 DOM 요소를 작성
+    // 최종 필터링된 데이터만 순회하며 DOM 요소 생성
     filteredTodos.forEach(todo => {
-        // 리스트 아이템(li) 생성
         const li = document.createElement('li');
         li.className = 'todo-item';
         
-        // 완료 상태일 때 스타일 클래스 추가
         if (todo.completed) {
             li.classList.add('completed');
         }
 
-        // 텍스트를 보여줄 span 요소 생성
         const textSpan = document.createElement('span');
         textSpan.className = 'todo-text';
         textSpan.textContent = todo.text;
         li.appendChild(textSpan);
 
-        // 버튼들을 묶어줄 컨테이너 생성
         const btnGroup = document.createElement('div');
         btnGroup.className = 'btn-group';
 
-        // 완료/취소 버튼 생성 및 이벤트 연결
         const completeBtn = document.createElement('button');
         completeBtn.className = 'action-btn complete-btn';
         completeBtn.textContent = todo.completed ? '취소' : '완료';
         completeBtn.addEventListener('click', () => toggleComplete(todo.id));
         btnGroup.appendChild(completeBtn);
 
-        // 수정 버튼 생성 및 이벤트 연결
         const editBtn = document.createElement('button');
         editBtn.className = 'action-btn edit-btn';
         editBtn.textContent = '수정';
         editBtn.addEventListener('click', () => editTodo(todo.id));
         btnGroup.appendChild(editBtn);
 
-        // 삭제 버튼 생성 및 이벤트 연결
         const deleteBtn = document.createElement('button');
         deleteBtn.className = 'action-btn delete-btn';
         deleteBtn.textContent = '삭제';
         deleteBtn.addEventListener('click', () => deleteTodo(todo.id));
         btnGroup.appendChild(deleteBtn);
 
-        // 최종 조립 후 리스트에 삽입
         li.appendChild(btnGroup);
         todoList.appendChild(li);
     });

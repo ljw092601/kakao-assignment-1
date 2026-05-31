@@ -6,12 +6,18 @@
     <title>Minimalist Todo App</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght=400;500;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
     <div class="todo-container">
         <h1>Todo List</h1>
+
+        <div class="date-navigation">
+            <button id="prev-date-btn" class="nav-btn" aria-label="이전 날짜">&lt;</button>
+            <span id="date-display"></span>
+            <button id="next-date-btn" class="nav-btn" aria-label="다음 날짜">&gt;</button>
+        </div>
         
         <form id="todo-form" class="todo-form">
             <input type="text" id="todo-input" placeholder="할 일을 입력하세요..." autocomplete="off">

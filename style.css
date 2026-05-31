@@ -28,9 +28,42 @@ body {
 h1 {
     font-size: 1.8rem;
     font-weight: 700;
-    margin-bottom: 1.5rem;
+    margin-bottom: 1.2rem;
     color: #1a1a1a;
     text-align: center;
+}
+
+/* 조건 반영: 날짜 네비게이션 바 디자인 */
+.date-navigation {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background-color: #f0ebfa; /* 메인 컬러의 연한 틴트 배경 */
+    padding: 0.6rem 1.2rem;
+    border-radius: 8px;
+    margin-bottom: 1.5rem;
+}
+
+#date-display {
+    font-size: 1.05rem;
+    font-weight: 700;
+    color: #672be0; /* 메인 컬러 적용 */
+}
+
+.nav-btn {
+    background: none;
+    border: none;
+    font-size: 1.2rem;
+    font-weight: 700;
+    color: #672be0;
+    cursor: pointer;
+    padding: 0 0.4rem;
+    transition: transform 0.2s ease, color 0.2s ease;
+}
+
+.nav-btn:hover {
+    transform: scale(1.2);
+    color: #5221b5;
 }
 
 /* 할 일 입력 폼 디자인 */
@@ -72,7 +105,7 @@ h1 {
     background-color: #5221b5;
 }
 
-/* 조건 반영: 필터 탭 바 전체 컨테이너 스타일 */
+/* 필터 탭 바 전체 컨테이너 스타일 */
 .filter-tabs {
     display: flex;
     justify-content: space-around;
@@ -100,7 +133,7 @@ h1 {
     color: #1a1a1a;
 }
 
-/* 조건 반영: 현재 선택된 활성화 탭 스타일 (메인 컬러 채택) */
+/* 현재 선택된 활성화 탭 스타일 */
 .tab-btn.active {
     background-color: #672be0;
     color: #ffffff;
