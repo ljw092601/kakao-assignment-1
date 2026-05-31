@@ -37,7 +37,7 @@ h1 {
 .todo-form {
     display: flex;
     gap: 10px;
-    margin-bottom: 1.5rem;
+    margin-bottom: 1.2rem;
 }
 
 #todo-input {
@@ -55,7 +55,7 @@ h1 {
     border-color: #672be0;
 }
 
-/* 추가 버튼 스타일 (메인 컬러 반영) */
+/* 추가 버튼 스타일 */
 #add-btn {
     background-color: #672be0;
     color: #ffffff;
@@ -70,6 +70,41 @@ h1 {
 
 #add-btn:hover {
     background-color: #5221b5;
+}
+
+/* 조건 반영: 필터 탭 바 전체 컨테이너 스타일 */
+.filter-tabs {
+    display: flex;
+    justify-content: space-around;
+    background-color: #f3f4f6;
+    padding: 4px;
+    border-radius: 8px;
+    margin-bottom: 1.5rem;
+}
+
+/* 개별 필터 버튼 스타일 */
+.tab-btn {
+    flex: 1;
+    border: none;
+    background: none;
+    padding: 0.5rem;
+    font-size: 0.9rem;
+    font-weight: 500;
+    color: #4b5563;
+    cursor: pointer;
+    border-radius: 6px;
+    transition: all 0.2s ease;
+}
+
+.tab-btn:hover {
+    color: #1a1a1a;
+}
+
+/* 조건 반영: 현재 선택된 활성화 탭 스타일 (메인 컬러 채택) */
+.tab-btn.active {
+    background-color: #672be0;
+    color: #ffffff;
+    font-weight: 600;
 }
 
 /* Todo 아이템 리스트 */
