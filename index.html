@@ -20,17 +20,42 @@
                 <button id="next-week-btn" class="nav-btn" aria-label="다음 주">&gt;</button>
             </div>
             <div id="weekly-calendar" class="weekly-calendar"></div>
+
+            <div class="progress-container">
+                <div class="progress-label">
+                    <span>주간 달성률</span>
+                    <span id="progress-percent">0%</span>
+                </div>
+                <div class="progress-bar-bg">
+                    <div id="progress-bar-fill" class="progress-bar-fill"></div>
+                </div>
+            </div>
         </div>
         
         <form id="todo-form" class="todo-form">
+            <select id="todo-category" class="category-select" aria-label="카테고리 선택">
+                <option value="일상">일상</option>
+                <option value="학업">학업</option>
+                <option value="업무">업무</option>
+                <option value="운동">운동</option>
+            </select>
             <input type="text" id="todo-input" placeholder="할 일을 입력하세요..." autocomplete="off">
             <button type="submit" id="add-btn">추가</button>
         </form>
 
-        <div class="filter-tabs">
-            <button class="tab-btn active" data-filter="all">전체</button>
-            <button class="tab-btn" data-filter="active">진행 중</button>
-            <button class="tab-btn" data-filter="completed">완료</button>
+        <div class="filter-container">
+            <div class="filter-tabs">
+                <button class="tab-btn active" data-filter="all">전체</button>
+                <button class="tab-btn" data-filter="active">진행</button>
+                <button class="tab-btn" data-filter="completed">완료</button>
+            </div>
+            <select id="filter-category" class="filter-category-select" aria-label="카테고리 필터">
+                <option value="all">모든 카테고리</option>
+                <option value="일상">일상</option>
+                <option value="학업">학업</option>
+                <option value="업무">업무</option>
+                <option value="운동">운동</option>
+            </select>
         </div>
         
         <ul id="todo-list" class="todo-list"></ul>

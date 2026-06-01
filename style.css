@@ -22,7 +22,7 @@ body {
     border-radius: 12px;
     box-shadow: 0 8px 24px rgba(0, 0, 0, 0.04);
     width: 100%;
-    max-width: 480px;
+    max-width: 500px;
 }
 
 h1 {
@@ -33,15 +33,15 @@ h1 {
     text-align: center;
 }
 
-/* 조건 반영: 주간 내비게이션 박스 래퍼 스타일 */
+/* 주간 내비게이션 박스 래퍼 스타일 */
 .week-navigation-container {
     background-color: #f0ebfa; /* 메인 컬러 연한 배경 적용 */
-    padding: 1rem 0.8rem;
+    padding: 1.2rem 1rem;
     border-radius: 10px;
     margin-bottom: 1.5rem;
 }
 
-/* 주간 상단 헤더 (이전버튼 - 월표시 - 다음버튼) */
+/* 주간 상단 헤더 */
 .week-header {
     display: flex;
     justify-content: space-between;
@@ -71,11 +71,12 @@ h1 {
     color: #5221b5;
 }
 
-/* 조건 반영: 월요일~일요일 가로 배치 그리드/플렉스 레이아웃 */
+/* 월요일~일요일 가로 배치 레이아웃 */
 .weekly-calendar {
     display: flex;
     justify-content: space-between;
     gap: 4px;
+    margin-bottom: 12px;
 }
 
 /* 개별 일자 항목 카드 디자인 */
@@ -109,22 +110,22 @@ h1 {
     transition: all 0.2s ease;
 }
 
-/* 조건 반영: 개별 일자 하단 할 일 개수 카운트 라벨 */
+/* 개별 일자 하단 할 일 개수 카운트 라벨 */
 .todo-count {
     font-size: 0.7rem;
     color: #672be0;
     font-weight: 700;
     margin-top: 2px;
-    min-height: 12px; /* 카운트가 없을 때도 영역 유지 */
+    min-height: 12px;
 }
 
-/* 조건 반영: 클릭하여 선택된 현재 활성화 날짜 스타일 (메인 컬러 채움) */
+/* 클릭하여 선택된 현재 활성화 날짜 스타일 */
 .day-card.active .day-number {
     background-color: #672be0;
     color: #ffffff;
 }
 
-/* 조건 반영: 실제 오늘 날짜에 대한 시각적 차별화 스타일 구현 */
+/* 실제 오늘 날짜에 대한 시각적 차별화 스타일 */
 .day-card.today {
     border: 1px dashed #672be0;
     background-color: rgba(103, 43, 224, 0.06);
@@ -135,11 +136,59 @@ h1 {
     font-weight: 700;
 }
 
+/* 조건 반영: 1. 프로그레스 바 내부 구성 요소 스타일 */
+.progress-container {
+    margin-top: 14px;
+    padding: 0 4px;
+    border-top: 1px solid rgba(103, 43, 224, 0.15);
+    padding-top: 12px;
+}
+
+.progress-label {
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.8rem;
+    font-weight: 700;
+    color: #672be0;
+    margin-bottom: 6px;
+}
+
+.progress-bar-bg {
+    background-color: #e5e7eb;
+    height: 6px;
+    border-radius: 10px;
+    overflow: hidden;
+}
+
+.progress-bar-fill {
+    background-color: #672be0;
+    height: 100%;
+    width: 0%; /* JS 연산에 따라 동적 확장 */
+    transition: width 0.3s ease;
+}
+
 /* 할 일 입력 폼 디자인 */
 .todo-form {
     display: flex;
-    gap: 10px;
+    gap: 8px;
     margin-bottom: 1.2rem;
+}
+
+/* 조건 반영: 2. 신규 Todo 카테고리 선택 창 스타일 */
+.category-select {
+    padding: 0.8rem;
+    border: 2px solid #e0e0e0;
+    border-radius: 8px;
+    font-size: 0.95rem;
+    outline: none;
+    background-color: #ffffff;
+    color: #4b5563;
+    cursor: pointer;
+    transition: border-color 0.2s ease;
+}
+
+.category-select:focus {
+    border-color: #672be0;
 }
 
 #todo-input {
@@ -173,14 +222,35 @@ h1 {
     background-color: #5221b5;
 }
 
-/* 필터 탭 바 디자인 */
+/* 조건 반영: 2. 필터 컨테이너 정렬 및 고도화 */
+.filter-container {
+    display: flex;
+    justify-content: space-between;
+    gap: 10px;
+    margin-bottom: 1.5rem;
+}
+
 .filter-tabs {
+    flex: 1.8;
     display: flex;
     justify-content: space-around;
     background-color: #f3f4f6;
     padding: 4px;
     border-radius: 8px;
-    margin-bottom: 1.5rem;
+}
+
+/* 조건 반영: 2. 카테고리 대분류 필터링 셀렉트박스 */
+.filter-category-select {
+    flex: 1.2;
+    padding: 0.4rem;
+    border: 1px solid #e5e7eb;
+    background-color: #f3f4f6;
+    border-radius: 8px;
+    font-size: 0.85rem;
+    font-weight: 500;
+    color: #4b5563;
+    outline: none;
+    cursor: pointer;
 }
 
 .tab-btn {
@@ -188,7 +258,7 @@ h1 {
     border: none;
     background: none;
     padding: 0.5rem;
-    font-size: 0.9rem;
+    font-size: 0.85rem;
     font-weight: 500;
     color: #4b5563;
     cursor: pointer;
@@ -225,11 +295,32 @@ h1 {
     transition: all 0.2s ease;
 }
 
-.todo-text {
-    font-size: 1rem;
-    word-break: break-all;
+/* 조건 반영: 2. 개별 Todo 리스트 내부 뱃지 태그 스타일 선언 */
+.todo-tag {
+    font-size: 0.72rem;
+    font-weight: 700;
+    padding: 2px 6px;
+    border-radius: 4px;
+    margin-right: 8px;
+    white-space: nowrap;
+}
+
+/* 카테고리 그룹별 컴포넌트 소프트 테마 바인딩 */
+.tag-일상 { background-color: #e0f2fe; color: #0369a1; }
+.tag-학업 { background-color: #fef3c7; color: #b45309; }
+.tag-업무 { background-color: #dcfce7; color: #15803d; }
+.tag-운동 { background-color: #fce7f3; color: #be185d; }
+
+.todo-content-box {
+    display: flex;
+    align-items: center;
     flex: 1;
     margin-right: 10px;
+    word-break: break-all;
+}
+
+.todo-text {
+    font-size: 1rem;
     color: #333333;
     transition: color 0.2s ease, text-decoration 0.2s ease;
 }

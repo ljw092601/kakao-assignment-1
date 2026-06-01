@@ -1,26 +1,29 @@
-// 로컬스토리지 연동 객체 역직렬화 복원
+// 로컬스토리지 연동 데이터 복원
 let todos = JSON.parse(localStorage.getItem('todos')) || [];
 
-// 필터링 기준 상태 변수 ('all', 'active', 'completed')
-let currentFilter = 'all';
+// 필터링 기준 상태 변수
+let currentFilter = 'all'; // 진행 상태 필터 ('all', 'active', 'completed')
+let currentCategoryFilter = 'all'; // 조건 반영: 2. 카테고리 필터 기준 ('all', '일상', '학업' 등)
 
-// 현재 클릭하여 선택된 타겟 날짜 객체 상태 변수 (기본값: 오늘)
+// 현재 선택된 타겟 날짜 및 주간 시작일 정보 상태 제어
 let selectedDate = new Date();
-
-// 조건 반영: 주간 달력 조작을 위해 현재 보고 있는 주차의 '월요일'을 저장할 상태 변수
 let currentWeekStart = getMonday(selectedDate);
 
-// 제어할 DOM 요소 선택
+// DOM 요소 선택
 const todoForm = document.getElementById('todo-form');
 const todoInput = document.getElementById('todo-input');
+const todoCategory = document.getElementById('todo-category'); // 조건 반영: 등록용 카테고리 노드
+const filterCategory = document.getElementById('filter-category'); // 조건 반영: 필터용 카테고리 노드
 const todoList = document.getElementById('todo-list');
 const tabButtons = document.querySelectorAll('.tab-btn');
 
-// 조건 반영: 주간 네비게이션용 DOM 노드 레퍼런스 확보
+// 주간 네비게이션 및 프로그레스 바 DOM 노드 레퍼런스
 const monthDisplay = document.getElementById('month-display');
 const weeklyCalendar = document.getElementById('weekly-calendar');
 const prevWeekBtn = document.getElementById('prev-week-btn');
 const nextWeekBtn = document.getElementById('next-week-btn');
+const progressPercent = document.getElementById('progress-percent'); // 조건 반영: 프로그레스 텍스트 노드
+const progressBarFill = document.getElementById('progress-bar-fill'); // 조건 반영: 프로그레스 바 바디 노드
 
 // 앱 초기 설정 및 이벤트 리스너 등록
 function init() {
@@ -30,21 +33,23 @@ function init() {
         button.addEventListener('click', changeFilter);
     });
 
-    // 조건 반영: 주차 단위 이전/다음 체인 이벤트 핸들러 바인딩
+    // 조건 반영: 카테고리 필터링 변경시 작동하는 리스너 등록
+    filterCategory.addEventListener('change', changeCategoryFilter);
+
     prevWeekBtn.addEventListener('click', () => handleWeekNavigation(-7));
     nextWeekBtn.addEventListener('click', () => handleWeekNavigation(7));
 
-    // 최초 뷰 구동 시 주간 달력 및 목록 동시 렌더링
+    // 초기 화면 컴포넌트 통합 렌더링
     renderWeeklyCalendar();
     renderTodos();
 }
 
-// 로컬스토리지 직렬화 텍스트 문자열 동기화 함수
+// 로컬스토리지 영속성 직렬화 저장 함수
 function saveToLocalStorage() {
     localStorage.setItem('todos', JSON.stringify(todos));
 }
 
-// 고유 날짜 포맷 문자열 생성기 (예: "2026-05-31")
+// 고유 날짜 포맷 문자열 생성기 (예: "2026-06-01")
 function getFormattedDateString(dateObj) {
     const year = dateObj.getFullYear();
     const month = String(dateObj.getMonth() + 1).padStart(2, '0');
@@ -52,100 +57,106 @@ function getFormattedDateString(dateObj) {
     return `${year}-${month}-${day}`;
 }
 
-// 조건 반영: 임의의 날짜를 기준 삼아 해당 주차의 '월요일' 일자 객체를 계산하는 함수
+// 임의의 날짜를 기준 삼아 해당 주차의 '월요일' 일자 객체를 연산하는 함수
 function getMonday(d) {
     const date = new Date(d);
     const day = date.getDay();
-    // 일요일(0)일 경우 이전 주차 연산을 막기 위해 보정 수치 설정 (-6)
     const diff = date.getDate() - day + (day === 0 ? -6 : 1);
     
     const monday = new Date(date.setDate(diff));
-    // 시간 세팅 정규화를 통해 날짜 대조 무결성 확보
     monday.setHours(0, 0, 0, 0);
     return monday;
 }
 
-// 조건 반영: 주차 넘기기 연산 및 연동 데이터 상태 동기화 제어 함수
+// 주차 이동 처리 함수
 function handleWeekNavigation(daysOffset) {
-    // 7일 단위 가감 처리
     currentWeekStart.setDate(currentWeekStart.getDate() + daysOffset);
-    
-    // 주차 정보가 바뀔 때 사용자 경험 향상을 위해 선택된 날짜도 새 주차의 월요일로 자동 동기화
     selectedDate = new Date(currentWeekStart);
     
     renderWeeklyCalendar();
     renderTodos();
 }
 
-// 조건 반영: 주간 가로 달력 캘린더 UI를 그리는 동적 렌더링 엔진 함수
+// 조건 반영: 1. 현재 보고 있는 주차 전체의 '달성률'을 계산하고 바를 업데이트하는 함수
+function updateWeeklyProgressBar() {
+    // 현재 주차에 속하는 7일간의 날짜 문자열 배열 확보
+    const weekDateStrings = [];
+    for (let i = 0; i < 7; i++) {
+        const loopDay = new Date(currentWeekStart);
+        loopDay.setDate(currentWeekStart.getDate() + i);
+        weekDateStrings.push(getFormattedDateString(loopDay));
+    }
+
+    // 이번 주 전체 할 일 필터링 집계
+    const weeklyTodos = todos.filter(todo => weekDateStrings.includes(todo.date));
+    const totalCount = weeklyTodos.length;
+    const completedCount = weeklyTodos.filter(todo => todo.completed).length;
+
+    // 분모가 0일 때의 예외 처리 후 백분율 계산
+    const percentage = totalCount === 0 ? 0 : Math.round((completedCount / totalCount) * 100);
+
+    // DOM 실시간 시각적 최신화
+    progressPercent.textContent = `${percentage}%`;
+    progressBarFill.style.width = `${percentage}%`;
+}
+
+// 주간 가로 달력 및 카운트 배지 렌더링 함수
 function renderWeeklyCalendar() {
     weeklyCalendar.innerHTML = '';
 
-    // 메인 달력 헤더에 해당 주차 기준 년/월 명시
     const year = currentWeekStart.getFullYear();
     const month = currentWeekStart.getMonth() + 1;
     monthDisplay.textContent = `${year}년 ${month}월`;
 
-    // 월요일부터 일요일순 인덱싱 매핑
     const dayNames = ['월', '화', '수', '목', '금', '토', '일'];
-    
-    // 실제 금일 날짜 포맷 정보 획득 (시각 강조용)
     const realTodayStr = getFormattedDateString(new Date());
-    // 현재 사용자가 찍은 선택 날짜 포맷 정보 획득 (액티브 활성화용)
     const selectedDateStr = getFormattedDateString(selectedDate);
 
-    // 가로 배열 7일 루프 생성
     for (let i = 0; i < 7; i++) {
         const loopDay = new Date(currentWeekStart);
         loopDay.setDate(currentWeekStart.getDate() + i);
         const loopDayStr = getFormattedDateString(loopDay);
 
-        // 조건 반영: 해당 일자에 부합하는 고유 Todo 개수 필터 집계
         const dayTodoCount = todos.filter(todo => todo.date === loopDayStr).length;
 
-        // 개별 일자 카드 바깥 프레임 생성
         const dayCard = document.createElement('div');
         dayCard.className = 'day-card';
 
-        // 조건 반영: 실제 오늘 날짜 구조적 구분 클래스 부여
         if (loopDayStr === realTodayStr) {
             dayCard.classList.add('today');
         }
 
-        // 조건 반영: 클릭되어 현재 활성화된 타겟 날짜 클래스 부여
         if (loopDayStr === selectedDateStr) {
             dayCard.classList.add('active');
         }
 
-        // 요일 텍스트 노드 추가
         const nameSpan = document.createElement('span');
         nameSpan.className = 'day-name';
         nameSpan.textContent = dayNames[i];
 
-        // 일자 숫자 노드 추가
         const numberSpan = document.createElement('span');
         numberSpan.className = 'day-number';
         numberSpan.textContent = loopDay.getDate();
 
-        // 조건 반영: 하단 개수 노드 기입 (0개일 경우 미니멀 디자인 유지를 위해 공백 처리)
         const countSpan = document.createElement('span');
         countSpan.className = 'todo-count';
         countSpan.textContent = dayTodoCount > 0 ? dayTodoCount : '';
 
-        // 카드 내부 패키징 조립
         dayCard.appendChild(nameSpan);
         dayCard.appendChild(numberSpan);
         dayCard.appendChild(countSpan);
 
-        // 조건 반영: 가로 달력 날짜 클릭 시 동작하는 필터 갱신 리스너 주입
         dayCard.addEventListener('click', () => {
             selectedDate = new Date(loopDay);
-            renderWeeklyCalendar(); // 액티브 인디케이터 스왑을 위한 상단 재렌더링
-            renderTodos();          // 하단 본문 리스트 목록 교체
+            renderWeeklyCalendar();
+            renderTodos();
         });
 
         weeklyCalendar.appendChild(dayCard);
     }
+
+    // 캘린더 호출 시 주간 성취율도 동시 최신화
+    updateWeeklyProgressBar();
 }
 
 // 새로운 Todo를 추가하는 함수
@@ -153,6 +164,7 @@ function addTodo(e) {
     e.preventDefault();
 
     const todoText = todoInput.value.trim();
+    const todoTagValue = todoCategory.value; // 조건 반영: 2. 선택된 카테고리 데이터 확보
 
     if (todoText === '') {
         alert('할 일을 입력해주세요!');
@@ -163,13 +175,14 @@ function addTodo(e) {
         id: Date.now(),
         text: todoText,
         completed: false,
-        date: getFormattedDateString(selectedDate) // 현재 선택된 타겟 날짜 종속 저장
+        date: getFormattedDateString(selectedDate),
+        category: todoTagValue // 조건 반영: 2. 개별 객체 모델 내에 카테고리 정보 주입
     };
 
     todos.push(newTodo);
     
     saveToLocalStorage();
-    renderWeeklyCalendar(); // 투두 개수 카운트 실시간 증감을 위해 주간 캘린더 동시 갱신
+    renderWeeklyCalendar(); // 상단 개수 카운터 및 프로그레스 바 실시간 반영 유도
     renderTodos();
 
     todoInput.value = '';
@@ -186,6 +199,7 @@ function toggleComplete(id) {
     });
     
     saveToLocalStorage();
+    updateWeeklyProgressBar(); // 달성 상태 변화에 따른 상단 프로그레스 바 실시간 리렌더링
     renderTodos();
 }
 
@@ -219,11 +233,11 @@ function deleteTodo(id) {
     todos = todos.filter(todo => todo.id !== id);
     
     saveToLocalStorage();
-    renderWeeklyCalendar(); // 투두 개수 카운트 감소 반영을 위해 상단 캘린더 동시 갱신
+    renderWeeklyCalendar(); // 삭제 건수 반영을 위해 상단 캘린더 및 성취율 바 리프레시
     renderTodos();
 }
 
-// 선택된 필터 상태를 변경하고 UI 탭 스타일을 전환하는 함수
+// 선택된 상태 필터(전체/진행/완료)를 변경하는 함수
 function changeFilter(e) {
     currentFilter = e.target.dataset.filter;
 
@@ -235,26 +249,38 @@ function changeFilter(e) {
     renderTodos();
 }
 
-// 데이터 상태, 필터 기준, 그리고 날짜 동기화를 적용해 리스트를 그려주는 렌더링 함수
+// 조건 반영: 2. 카테고리 필터 드롭다운 조작 시 트리거되는 핸들러 함수
+function changeCategoryFilter(e) {
+    currentCategoryFilter = e.target.value;
+    renderTodos();
+}
+
+// 3중 필터링 데이터 기반 동적 본문 리스트 빌더 함수
 function renderTodos() {
     todoList.innerHTML = '';
 
     const targetDateStr = getFormattedDateString(selectedDate);
 
-    // 2중 필터링 실행 (1차: 선택 날짜 매칭, 2차: 활성 탭 매칭)
+    // 조건 고도화: 날짜 일치 x -> 완료 상태 일치 x -> 카테고리 일치 x 조건 순차 필터 검증 실행
     const filteredTodos = todos.filter(todo => {
+        // 1차 필터: 날짜 검증
         if (todo.date !== targetDateStr) {
             return false;
         }
 
-        if (currentFilter === 'active') {
-            return !todo.completed;
-        } else if (currentFilter === 'completed') {
-            return todo.completed;
+        // 2차 필터: 상태 탭 검증
+        if (currentFilter === 'active' && todo.completed) return false;
+        if (currentFilter === 'completed' && !todo.completed) return false;
+
+        // 3차 필터: 카테고리 검증
+        if (currentCategoryFilter !== 'all' && todo.category !== currentCategoryFilter) {
+            return false;
         }
+
         return true;
     });
 
+    // 필터 연산이 끝난 정제 배열 기반으로 DOM 생성
     filteredTodos.forEach(todo => {
         const li = document.createElement('li');
         li.className = 'todo-item';
@@ -263,11 +289,24 @@ function renderTodos() {
             li.classList.add('completed');
         }
 
+        // 조건 반영: 2. 텍스트 바디 컨테이너 및 카테고리 뱃지 태그 구성 추가
+        const contentBox = document.createElement('div');
+        contentBox.className = 'todo-content-box';
+
+        const tagSpan = document.createElement('span');
+        // 동적 클래스 부여로 카테고리별 테마 스타일 바인딩 (예: .tag-일상, .tag-운동)
+        tagSpan.className = `todo-tag tag-${todo.category || '일상'}`;
+        tagSpan.textContent = todo.category || '일상';
+        contentBox.appendChild(tagSpan);
+
         const textSpan = document.createElement('span');
         textSpan.className = 'todo-text';
         textSpan.textContent = todo.text;
-        li.appendChild(textSpan);
+        contentBox.appendChild(textSpan);
+        
+        li.appendChild(contentBox);
 
+        // 액션 버튼 그룹 바인딩
         const btnGroup = document.createElement('div');
         btnGroup.className = 'btn-group';
 
