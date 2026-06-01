@@ -60,5 +60,5 @@
 * **Vanilla JavaScript (ES6+)**: 객체 지향 상태 관리, 동적 DOM 조작, 날짜 연산 연동, 로컬스토리지 API 제어
 
 ---
-## :camera: 스크린샷
+## 📷 스크린샷
 <img width="1919" height="986" alt="스크린샷 2026-06-01 225446" src="https://github.com/user-attachments/assets/a47f2e66-03e9-4ef5-8f85-38140e721558" />
