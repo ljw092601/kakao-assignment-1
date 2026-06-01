@@ -13,16 +13,42 @@ body {
     align-items: center;
     min-height: 100vh;
     color: #333333;
+    padding: 20px;
 }
 
-/* 메인 카드 컨테이너 */
+/* 좌우 컨테이너 균형 조정을 위해 전체 최대 가로폭 확장 */
+.app-layout {
+    display: flex;
+    gap: 24px;
+    width: 100%;
+    max-width: 1040px;
+    align-items: flex-start;
+}
+
+/* 조건 반영: 기존 max-height를 고정 height로 변경하여 할 일이 없어도 공간 유지 */
 .todo-container {
     background-color: #ffffff;
     padding: 2.5rem;
     border-radius: 12px;
     box-shadow: 0 8px 24px rgba(0, 0, 0, 0.04);
-    width: 100%;
-    max-width: 500px;
+    flex: 1; 
+    height: 720px; /* 조건 반영: 빈 컨테이너 상태일 때도 동일한 영역 보존 */
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+}
+
+/* 조건 반영: 오른쪽 다가오는 일정 컨테이너도 고정 height로 변경하여 균형 일치 */
+.upcoming-container {
+    background-color: #ffffff;
+    padding: 2.5rem;
+    border-radius: 12px;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.04);
+    flex: 1; 
+    height: 720px; /* 조건 반영: 빈 컨테이너 상태일 때도 동일한 영역 보존 */
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
 }
 
 h1 {
@@ -33,15 +59,23 @@ h1 {
     text-align: center;
 }
 
+h2 {
+    font-size: 1.3rem;
+    font-weight: 700;
+    margin-bottom: 1.5rem;
+    color: #672be0;
+    border-bottom: 2px solid #f0ebfa;
+    padding-bottom: 10px;
+}
+
 /* 주간 내비게이션 박스 래퍼 스타일 */
 .week-navigation-container {
-    background-color: #f0ebfa; /* 메인 컬러 연한 배경 적용 */
+    background-color: #f0ebfa;
     padding: 1.2rem 1rem;
     border-radius: 10px;
     margin-bottom: 1.5rem;
 }
 
-/* 주간 상단 헤더 */
 .week-header {
     display: flex;
     justify-content: space-between;
@@ -53,7 +87,7 @@ h1 {
 #month-display {
     font-size: 1.05rem;
     font-weight: 700;
-    color: #672be0; /* 메인 컬러 */
+    color: #672be0;
 }
 
 .nav-btn {
@@ -71,7 +105,6 @@ h1 {
     color: #5221b5;
 }
 
-/* 월요일~일요일 가로 배치 레이아웃 */
 .weekly-calendar {
     display: flex;
     justify-content: space-between;
@@ -79,7 +112,6 @@ h1 {
     margin-bottom: 12px;
 }
 
-/* 개별 일자 항목 카드 디자인 */
 .day-card {
     flex: 1;
     display: flex;
@@ -110,7 +142,6 @@ h1 {
     transition: all 0.2s ease;
 }
 
-/* 개별 일자 하단 할 일 개수 카운트 라벨 */
 .todo-count {
     font-size: 0.7rem;
     color: #672be0;
@@ -119,13 +150,11 @@ h1 {
     min-height: 12px;
 }
 
-/* 클릭하여 선택된 현재 활성화 날짜 스타일 */
 .day-card.active .day-number {
     background-color: #672be0;
     color: #ffffff;
 }
 
-/* 실제 오늘 날짜에 대한 시각적 차별화 스타일 */
 .day-card.today {
     border: 1px dashed #672be0;
     background-color: rgba(103, 43, 224, 0.06);
@@ -136,7 +165,7 @@ h1 {
     font-weight: 700;
 }
 
-/* 조건 반영: 1. 프로그레스 바 내부 구성 요소 스타일 */
+/* 프로그레스 바 스타일 */
 .progress-container {
     margin-top: 14px;
     padding: 0 4px;
@@ -163,7 +192,7 @@ h1 {
 .progress-bar-fill {
     background-color: #672be0;
     height: 100%;
-    width: 0%; /* JS 연산에 따라 동적 확장 */
+    width: 0%;
     transition: width 0.3s ease;
 }
 
@@ -174,7 +203,6 @@ h1 {
     margin-bottom: 1.2rem;
 }
 
-/* 조건 반영: 2. 신규 Todo 카테고리 선택 창 스타일 */
 .category-select {
     padding: 0.8rem;
     border: 2px solid #e0e0e0;
@@ -205,7 +233,6 @@ h1 {
     border-color: #672be0;
 }
 
-/* 추가 버튼 스타일 */
 #add-btn {
     background-color: #672be0;
     color: #ffffff;
@@ -222,7 +249,7 @@ h1 {
     background-color: #5221b5;
 }
 
-/* 조건 반영: 2. 필터 컨테이너 정렬 및 고도화 */
+/* 필터 영역 스타일 */
 .filter-container {
     display: flex;
     justify-content: space-between;
@@ -239,7 +266,6 @@ h1 {
     border-radius: 8px;
 }
 
-/* 조건 반영: 2. 카테고리 대분류 필터링 셀렉트박스 */
 .filter-category-select {
     flex: 1.2;
     padding: 0.4rem;
@@ -276,12 +302,40 @@ h1 {
     font-weight: 600;
 }
 
-/* Todo 아이템 리스트 */
+/* Todo 공통 리스트 구조 */
 .todo-list {
     list-style: none;
     display: flex;
     flex-direction: column;
     gap: 12px;
+}
+
+/* 좌측 메인 목록과 우측 다가오는 목록 모두 독립 스크롤바 및 영역 유지 */
+.main-todo-list,
+.upcoming-list {
+    overflow-y: auto;
+    flex: 1;
+    padding-right: 6px;
+}
+
+/* 미니멀 커스텀 스크롤바 공통 디자인 적용 */
+.main-todo-list::-webkit-scrollbar,
+.upcoming-list::-webkit-scrollbar {
+    width: 5px;
+}
+.main-todo-list::-webkit-scrollbar-track,
+.upcoming-list::-webkit-scrollbar-track {
+    background: #f3f4f6;
+    border-radius: 10px;
+}
+.main-todo-list::-webkit-scrollbar-thumb,
+.upcoming-list::-webkit-scrollbar-thumb {
+    background: #e0d5fa;
+    border-radius: 10px;
+}
+.main-todo-list::-webkit-scrollbar-thumb:hover,
+.upcoming-list::-webkit-scrollbar-thumb:hover {
+    background: #672be0;
 }
 
 .todo-item {
@@ -295,21 +349,30 @@ h1 {
     transition: all 0.2s ease;
 }
 
-/* 조건 반영: 2. 개별 Todo 리스트 내부 뱃지 태그 스타일 선언 */
 .todo-tag {
     font-size: 0.72rem;
     font-weight: 700;
     padding: 2px 6px;
     border-radius: 4px;
-    margin-right: 8px;
+    margin-right: 6px;
     white-space: nowrap;
 }
 
-/* 카테고리 그룹별 컴포넌트 소프트 테마 바인딩 */
 .tag-일상 { background-color: #e0f2fe; color: #0369a1; }
 .tag-학업 { background-color: #fef3c7; color: #b45309; }
 .tag-업무 { background-color: #dcfce7; color: #15803d; }
 .tag-운동 { background-color: #fce7f3; color: #be185d; }
+
+.todo-date-label {
+    font-size: 0.72rem;
+    font-weight: 700;
+    background-color: #f3f4f6;
+    color: #4b5563;
+    padding: 2px 6px;
+    border-radius: 4px;
+    margin-right: 6px;
+    white-space: nowrap;
+}
 
 .todo-content-box {
     display: flex;
