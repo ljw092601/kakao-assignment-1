@@ -37,6 +37,11 @@ function App() {
   const [todoInput, setTodoInput] = useState('');
   const [todoCategory, setTodoCategory] = useState('일상');
 
+  // 수정 상태
+  const [editingId, setEditingId] = useState(null);
+  const [editingText, setEditingText] = useState('');
+  const [editingList, setEditingList] = useState(null);
+
   // 로컬스토리지 영속성 직렬화 저장 (todos 변경 시)
   useEffect(() => {
     localStorage.setItem('todos', JSON.stringify(todos));
@@ -79,21 +84,33 @@ function App() {
     ));
   };
 
-  // Todo 내용을 수정하는 함수
-  const editTodo = (id) => {
-    const todoToEdit = todos.find(todo => todo.id === id);
-    if (!todoToEdit) return;
+  // Todo 수정을 시작하는 함수
+  const startEditTodo = (id, currentText, listType) => {
+    setEditingId(id);
+    setEditingText(currentText);
+    setEditingList(listType);
+  };
 
-    const newText = prompt('할 일을 수정하세요:', todoToEdit.text);
-    if (newText === null) return;
-    if (newText.trim() === '') {
+  // 수정된 내용을 저장하는 함수
+  const saveEditTodo = (id) => {
+    if (editingText.trim() === '') {
       alert('내용을 입력해야 수정할 수 있습니다.');
       return;
     }
 
     setTodos(todos.map(todo => 
-      todo.id === id ? { ...todo, text: newText.trim() } : todo
+      todo.id === id ? { ...todo, text: editingText.trim() } : todo
     ));
+    setEditingId(null);
+    setEditingText('');
+    setEditingList(null);
+  };
+
+  // 수정을 취소하는 함수
+  const cancelEditTodo = () => {
+    setEditingId(null);
+    setEditingText('');
+    setEditingList(null);
   };
 
   // Todo를 삭제하는 함수
@@ -249,14 +266,37 @@ function App() {
             <li key={todo.id} className={`todo-item ${todo.completed ? 'completed' : ''}`}>
               <div className="todo-content-box">
                 <span className={`todo-tag tag-${todo.category || '일상'}`}>{todo.category || '일상'}</span>
-                <span className="todo-text">{todo.text}</span>
+                {editingId === todo.id && editingList === 'main' ? (
+                  <input
+                    type="text"
+                    className="edit-todo-input"
+                    value={editingText}
+                    onChange={(e) => setEditingText(e.target.value)}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter') saveEditTodo(todo.id);
+                      if (e.key === 'Escape') cancelEditTodo();
+                    }}
+                    autoFocus
+                  />
+                ) : (
+                  <span className="todo-text">{todo.text}</span>
+                )}
               </div>
               <div className="btn-group">
-                <button className="action-btn complete-btn" onClick={() => toggleComplete(todo.id)}>
-                  {todo.completed ? '취소' : '완료'}
-                </button>
-                <button className="action-btn edit-btn" onClick={() => editTodo(todo.id)}>수정</button>
-                <button className="action-btn delete-btn" onClick={() => deleteTodo(todo.id)}>삭제</button>
+                {editingId === todo.id && editingList === 'main' ? (
+                  <>
+                    <button className="action-btn save-btn" onClick={() => saveEditTodo(todo.id)}>저장</button>
+                    <button className="action-btn cancel-btn" onClick={cancelEditTodo}>취소</button>
+                  </>
+                ) : (
+                  <>
+                    <button className="action-btn complete-btn" onClick={() => toggleComplete(todo.id)}>
+                      {todo.completed ? '취소' : '완료'}
+                    </button>
+                    <button className="action-btn edit-btn" onClick={() => startEditTodo(todo.id, todo.text, 'main')}>수정</button>
+                    <button className="action-btn delete-btn" onClick={() => deleteTodo(todo.id)}>삭제</button>
+                  </>
+                )}
               </div>
             </li>
           ))}
@@ -272,14 +312,37 @@ function App() {
               <div className="todo-content-box">
                 <span className="todo-date-label">{todo.date.slice(5)}</span>
                 <span className={`todo-tag tag-${todo.category || '일상'}`}>{todo.category || '일상'}</span>
-                <span className="todo-text">{todo.text}</span>
+                {editingId === todo.id && editingList === 'upcoming' ? (
+                  <input
+                    type="text"
+                    className="edit-todo-input"
+                    value={editingText}
+                    onChange={(e) => setEditingText(e.target.value)}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter') saveEditTodo(todo.id);
+                      if (e.key === 'Escape') cancelEditTodo();
+                    }}
+                    autoFocus
+                  />
+                ) : (
+                  <span className="todo-text">{todo.text}</span>
+                )}
               </div>
               <div className="btn-group">
-                <button className="action-btn complete-btn" onClick={() => toggleComplete(todo.id)}>
-                  {todo.completed ? '취소' : '완료'}
-                </button>
-                <button className="action-btn edit-btn" onClick={() => editTodo(todo.id)}>수정</button>
-                <button className="action-btn delete-btn" onClick={() => deleteTodo(todo.id)}>삭제</button>
+                {editingId === todo.id && editingList === 'upcoming' ? (
+                  <>
+                    <button className="action-btn save-btn" onClick={() => saveEditTodo(todo.id)}>저장</button>
+                    <button className="action-btn cancel-btn" onClick={cancelEditTodo}>취소</button>
+                  </>
+                ) : (
+                  <>
+                    <button className="action-btn complete-btn" onClick={() => toggleComplete(todo.id)}>
+                      {todo.completed ? '취소' : '완료'}
+                    </button>
+                    <button className="action-btn edit-btn" onClick={() => startEditTodo(todo.id, todo.text, 'upcoming')}>수정</button>
+                    <button className="action-btn delete-btn" onClick={() => deleteTodo(todo.id)}>삭제</button>
+                  </>
+                )}
               </div>
             </li>
           ))}

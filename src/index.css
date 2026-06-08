@@ -422,6 +422,7 @@ h2 {
 .btn-group {
   display: flex;
   gap: 6px;
+  flex-shrink: 0;
 }
 
 .action-btn {
@@ -431,6 +432,7 @@ h2 {
   font-size: 0.85rem;
   cursor: pointer;
   font-weight: 500;
+  /* white-space: nowrap; */
   transition: background-color 0.2s ease, color 0.2s ease;
 }
 
@@ -460,4 +462,32 @@ h2 {
 
 .delete-btn:hover {
   background-color: #fee2e2;
+}
+
+/* 인라인 수정 입력창 및 버튼 스타일 */
+.edit-todo-input {
+  flex: 1;
+  padding: 0.2rem 0.4rem;
+  border: 1px solid #672be0;
+  border-radius: 4px;
+  font-size: 1rem;
+  outline: none;
+}
+
+.save-btn {
+  background-color: #dcfce7;
+  color: #15803d;
+}
+
+.save-btn:hover {
+  background-color: #bbf7d0;
+}
+
+.cancel-btn {
+  background-color: #f3f4f6;
+  color: #4b5563;
+}
+
+.cancel-btn:hover {
+  background-color: #e5e7eb;
 }
