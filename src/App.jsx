@@ -1,22 +1,10 @@
 import { useState, useEffect } from 'react';
-
-// 고유 날짜 포맷 문자열 생성기 (예: "2026-06-01")
-function getFormattedDateString(dateObj) {
-  const year = dateObj.getFullYear();
-  const month = String(dateObj.getMonth() + 1).padStart(2, '0');
-  const day = String(dateObj.getDate()).padStart(2, '0');
-  return `${year}-${month}-${day}`;
-}
-
-// 임의의 날짜를 기준 삼아 해당 주차의 '월요일' 일자 객체를 연산하는 함수
-function getMonday(d) {
-  const date = new Date(d);
-  const day = date.getDay();
-  const diff = date.getDate() - day + (day === 0 ? -6 : 1);
-  const monday = new Date(date.setDate(diff));
-  monday.setHours(0, 0, 0, 0);
-  return monday;
-}
+import { getFormattedDateString, getMonday } from './utils/dateUtils';
+import TodoForm from './components/TodoForm';
+import TodoFilter from './components/TodoFilter';
+import TodoList from './components/TodoList';
+import WeeklyCalendar from './components/WeeklyCalendar';
+import WeeklyProgress from './components/WeeklyProgress';
 
 function App() {
   // 로컬스토리지 연동 데이터 복원
@@ -161,192 +149,75 @@ function App() {
 
         {/* 주간 네비게이션 */}
         <div className="week-navigation-container">
-          <div className="week-header">
-            <button id="prev-week-btn" className="nav-btn" aria-label="이전 주" onClick={() => handleWeekNavigation(-7)}>&lt;</button>
-            <span id="month-display">{year}년 {month}월</span>
-            <button id="next-week-btn" className="nav-btn" aria-label="다음 주" onClick={() => handleWeekNavigation(7)}>&gt;</button>
-          </div>
-          <div id="weekly-calendar" className="weekly-calendar">
-            {weekDays.map((loopDay, index) => {
-              const loopDayStr = getFormattedDateString(loopDay);
-              const dayTodoCount = todos.filter(todo => todo.date === loopDayStr).length;
-              
-              let dayCardClass = "day-card";
-              if (loopDayStr === realTodayStr) dayCardClass += " today";
-              if (loopDayStr === selectedDateStr) dayCardClass += " active";
-
-              return (
-                <div 
-                  key={loopDayStr}
-                  className={dayCardClass}
-                  onClick={() => setSelectedDate(new Date(loopDay))}
-                >
-                  <span className="day-name">{dayNames[index]}</span>
-                  <span className="day-number">{loopDay.getDate()}</span>
-                  <span className="todo-count">{dayTodoCount > 0 ? dayTodoCount : ''}</span>
-                </div>
-              );
-            })}
-          </div>
-
-          {/* 주간 달성률 프로그래스 바 */}
-          <div className="progress-container">
-            <div className="progress-label">
-              <span>주간 달성률</span>
-              <span id="progress-percent">{progressPercentage}%</span>
-            </div>
-            <div className="progress-bar-bg">
-              <div id="progress-bar-fill" className="progress-bar-fill" style={{ width: `${progressPercentage}%` }}></div>
-            </div>
-          </div>
+          <WeeklyCalendar
+            year={year}
+            month={month}
+            handleWeekNavigation={handleWeekNavigation}
+            weekDays={weekDays}
+            dayNames={dayNames}
+            todos={todos}
+            realTodayStr={realTodayStr}
+            selectedDateStr={selectedDateStr}
+            setSelectedDate={setSelectedDate}
+          />
+          <WeeklyProgress progressPercentage={progressPercentage} />
         </div>
 
         {/* 할 일 입력 폼 */}
-        <form id="todo-form" className="todo-form" onSubmit={addTodo}>
-          <select 
-            id="todo-category" 
-            className="category-select" 
-            aria-label="카테고리 선택"
-            value={todoCategory}
-            onChange={(e) => setTodoCategory(e.target.value)}
-          >
-            <option value="일상">일상</option>
-            <option value="학업">학업</option>
-            <option value="업무">업무</option>
-            <option value="운동">운동</option>
-          </select>
-          <input 
-            type="text" 
-            id="todo-input" 
-            placeholder="할 일을 입력하세요..." 
-            autoComplete="off" 
-            value={todoInput}
-            onChange={(e) => setTodoInput(e.target.value)}
-          />
-          <button type="submit" id="add-btn">추가</button>
-        </form>
+        <TodoForm
+          todoCategory={todoCategory}
+          onCategoryChange={(e) => setTodoCategory(e.target.value)}
+          todoInput={todoInput}
+          onInputChange={(e) => setTodoInput(e.target.value)}
+          onSubmit={addTodo}
+        />
 
         {/* 필터 탭 및 카테고리 필터 */}
-        <div className="filter-container">
-          <div className="filter-tabs">
-            <button 
-              className={`tab-btn ${currentFilter === 'all' ? 'active' : ''}`} 
-              data-filter="all"
-              onClick={() => setCurrentFilter('all')}
-            >전체</button>
-            <button 
-              className={`tab-btn ${currentFilter === 'active' ? 'active' : ''}`} 
-              data-filter="active"
-              onClick={() => setCurrentFilter('active')}
-            >진행</button>
-            <button 
-              className={`tab-btn ${currentFilter === 'completed' ? 'active' : ''}`} 
-              data-filter="completed"
-              onClick={() => setCurrentFilter('completed')}
-            >완료</button>
-          </div>
-          <select 
-            id="filter-category" 
-            className="filter-category-select" 
-            aria-label="카테고리 필터"
-            value={currentCategoryFilter}
-            onChange={(e) => setCurrentCategoryFilter(e.target.value)}
-          >
-            <option value="all">모든 카테고리</option>
-            <option value="일상">일상</option>
-            <option value="학업">학업</option>
-            <option value="업무">업무</option>
-            <option value="운동">운동</option>
-          </select>
-        </div>
+        <TodoFilter
+          currentFilter={currentFilter}
+          onFilterChange={setCurrentFilter}
+          currentCategoryFilter={currentCategoryFilter}
+          onCategoryFilterChange={(e) => setCurrentCategoryFilter(e.target.value)}
+        />
 
         {/* 할 일 목록 배열 공간 */}
-        <ul id="todo-list" className="todo-list main-todo-list">
-          {filteredTodos.map(todo => (
-            <li key={todo.id} className={`todo-item ${todo.completed ? 'completed' : ''}`}>
-              <div className="todo-content-box">
-                <span className={`todo-tag tag-${todo.category || '일상'}`}>{todo.category || '일상'}</span>
-                {editingId === todo.id && editingList === 'main' ? (
-                  <input
-                    type="text"
-                    className="edit-todo-input"
-                    value={editingText}
-                    onChange={(e) => setEditingText(e.target.value)}
-                    onKeyDown={(e) => {
-                      if (e.key === 'Enter') saveEditTodo(todo.id);
-                      if (e.key === 'Escape') cancelEditTodo();
-                    }}
-                    autoFocus
-                  />
-                ) : (
-                  <span className="todo-text">{todo.text}</span>
-                )}
-              </div>
-              <div className="btn-group">
-                {editingId === todo.id && editingList === 'main' ? (
-                  <>
-                    <button className="action-btn save-btn" onClick={() => saveEditTodo(todo.id)}>저장</button>
-                    <button className="action-btn cancel-btn" onClick={cancelEditTodo}>취소</button>
-                  </>
-                ) : (
-                  <>
-                    <button className="action-btn complete-btn" onClick={() => toggleComplete(todo.id)}>
-                      {todo.completed ? '취소' : '완료'}
-                    </button>
-                    <button className="action-btn edit-btn" onClick={() => startEditTodo(todo.id, todo.text, 'main')}>수정</button>
-                    <button className="action-btn delete-btn" onClick={() => deleteTodo(todo.id)}>삭제</button>
-                  </>
-                )}
-              </div>
-            </li>
-          ))}
-        </ul>
+        <TodoList
+          listId="todo-list"
+          listClassName="main-todo-list"
+          todos={filteredTodos}
+          listType="main"
+          editingId={editingId}
+          editingList={editingList}
+          editingText={editingText}
+          onEditChange={(e) => setEditingText(e.target.value)}
+          onSave={saveEditTodo}
+          onCancel={cancelEditTodo}
+          onToggleComplete={toggleComplete}
+          onEditStart={startEditTodo}
+          onDelete={deleteTodo}
+          showDate={false}
+        />
       </div>
 
       {/* 다가오는 일정 사이드바 */}
       <div className="upcoming-container">
         <h2>다가오는 일정</h2>
-        <ul id="upcoming-list" className="todo-list upcoming-list">
-          {upcomingTodos.map(todo => (
-            <li key={todo.id} className={`todo-item ${todo.completed ? 'completed' : ''}`}>
-              <div className="todo-content-box">
-                <span className="todo-date-label">{todo.date.slice(5)}</span>
-                <span className={`todo-tag tag-${todo.category || '일상'}`}>{todo.category || '일상'}</span>
-                {editingId === todo.id && editingList === 'upcoming' ? (
-                  <input
-                    type="text"
-                    className="edit-todo-input"
-                    value={editingText}
-                    onChange={(e) => setEditingText(e.target.value)}
-                    onKeyDown={(e) => {
-                      if (e.key === 'Enter') saveEditTodo(todo.id);
-                      if (e.key === 'Escape') cancelEditTodo();
-                    }}
-                    autoFocus
-                  />
-                ) : (
-                  <span className="todo-text">{todo.text}</span>
-                )}
-              </div>
-              <div className="btn-group">
-                {editingId === todo.id && editingList === 'upcoming' ? (
-                  <>
-                    <button className="action-btn save-btn" onClick={() => saveEditTodo(todo.id)}>저장</button>
-                    <button className="action-btn cancel-btn" onClick={cancelEditTodo}>취소</button>
-                  </>
-                ) : (
-                  <>
-                    <button className="action-btn complete-btn" onClick={() => toggleComplete(todo.id)}>
-                      {todo.completed ? '취소' : '완료'}
-                    </button>
-                    <button className="action-btn edit-btn" onClick={() => startEditTodo(todo.id, todo.text, 'upcoming')}>수정</button>
-                    <button className="action-btn delete-btn" onClick={() => deleteTodo(todo.id)}>삭제</button>
-                  </>
-                )}
-              </div>
-            </li>
-          ))}
-        </ul>
+        <TodoList
+          listId="upcoming-list"
+          listClassName="upcoming-list"
+          todos={upcomingTodos}
+          listType="upcoming"
+          editingId={editingId}
+          editingList={editingList}
+          editingText={editingText}
+          onEditChange={(e) => setEditingText(e.target.value)}
+          onSave={saveEditTodo}
+          onCancel={cancelEditTodo}
+          onToggleComplete={toggleComplete}
+          onEditStart={startEditTodo}
+          onDelete={deleteTodo}
+          showDate={true}
+        />
       </div>
     </div>
   );
