@@ -1,0 +1,220 @@
+"use client";
+
+import { useState, useEffect, useTransition } from "react";
+import { Todo } from "../types/todo";
+import { getTodos, createTodo } from "../actions/todoActions";
+import TodoItem from "./TodoItem";
+
+const DAYS = ["월", "화", "수", "목", "금", "토", "일"];
+
+function getWeekDates(baseDate: Date) {
+  const dates = [];
+  const date = new Date(baseDate);
+  const day = date.getDay();
+  const diff = date.getDate() - day + (day === 0 ? -6 : 1); // adjust when day is sunday
+  
+  const start = new Date(date.setDate(diff));
+  start.setHours(0, 0, 0, 0);
+
+  for (let i = 0; i < 7; i++) {
+    const d = new Date(start);
+    d.setDate(start.getDate() + i);
+    dates.push(d);
+  }
+  return dates;
+}
+
+function formatDate(date: Date) {
+  const y = date.getFullYear();
+  const m = String(date.getMonth() + 1).padStart(2, '0');
+  const d = String(date.getDate()).padStart(2, '0');
+  return `${y}-${m}-${d}`;
+}
+
+export default function TodoListClient() {
+  const [currentWeekBase, setCurrentWeekBase] = useState(new Date());
+  const [selectedDate, setSelectedDate] = useState(formatDate(new Date()));
+  const [searchQuery, setSearchQuery] = useState("");
+  const [filterTab, setFilterTab] = useState<"all" | "active" | "completed">("all");
+  const [todos, setTodos] = useState<Todo[]>([]);
+  const [newTaskTitle, setNewTaskTitle] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
+  const [isPending, startTransition] = useTransition();
+
+  const weekDates = getWeekDates(currentWeekBase);
+  const startDateStr = formatDate(weekDates[0]);
+  const endDateStr = formatDate(weekDates[6]);
+
+  const fetchTodos = async () => {
+    setIsLoading(true);
+    try {
+      const data = await getTodos(startDateStr, endDateStr);
+      setTodos(data);
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchTodos();
+  }, [startDateStr, endDateStr]);
+
+  const handlePrevWeek = () => {
+    const next = new Date(currentWeekBase);
+    next.setDate(next.getDate() - 7);
+    setCurrentWeekBase(next);
+  };
+
+  const handleNextWeek = () => {
+    const next = new Date(currentWeekBase);
+    next.setDate(next.getDate() + 7);
+    setCurrentWeekBase(next);
+  };
+
+  const handleAddTask = () => {
+    if (!newTaskTitle.trim()) return;
+    
+    startTransition(async () => {
+      await createTodo({ title: newTaskTitle, date: selectedDate });
+      setNewTaskTitle("");
+      await fetchTodos();
+    });
+  };
+
+  const handleTaskChange = () => {
+    // Refresh the list when a task changes (like delete or toggle completion)
+    fetchTodos();
+  };
+
+  // Derived state
+  const countsByDate = todos.reduce((acc, todo) => {
+    if (todo.date) {
+      acc[todo.date] = (acc[todo.date] || 0) + 1;
+    }
+    return acc;
+  }, {} as Record<string, number>);
+
+  const displayedTodos = todos
+    .filter(t => t.date === selectedDate)
+    .filter(t => {
+      if (filterTab === "active") return !t.completed;
+      if (filterTab === "completed") return t.completed;
+      return true;
+    })
+    .filter(t => t.title.toLowerCase().includes(searchQuery.toLowerCase()));
+
+  return (
+    <div className="max-w-2xl mx-auto bg-white min-h-[800px] rounded-[40px] shadow-2xl overflow-hidden flex flex-col p-8 border border-slate-100">
+      <h1 className="text-3xl font-extrabold text-center text-violet-800 italic mb-8 tracking-tight">Todo List</h1>
+
+      {/* Week Navigation */}
+      <div className="flex items-center justify-between mb-6 px-2">
+        <button onClick={handlePrevWeek} className="text-violet-800 hover:text-violet-600 p-2">
+          <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M12.707 5.293a1 1 0 010 1.414L9.414 10l3.293 3.293a1 1 0 01-1.414 1.414l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 0z" clipRule="evenodd" /></svg>
+        </button>
+        <span className="text-slate-500 font-medium">{startDateStr} ~ {endDateStr}</span>
+        <button onClick={handleNextWeek} className="text-violet-800 hover:text-violet-600 p-2">
+          <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clipRule="evenodd" /></svg>
+        </button>
+      </div>
+
+      {/* Calendar Days */}
+      <div className="flex justify-between gap-2 mb-8">
+        {weekDates.map((date, idx) => {
+          const dateStr = formatDate(date);
+          const isSelected = dateStr === selectedDate;
+          const count = countsByDate[dateStr] || 0;
+          
+          return (
+            <button
+              key={dateStr}
+              onClick={() => setSelectedDate(dateStr)}
+              className={`flex-1 flex flex-col items-center justify-center py-3 rounded-2xl transition-all ${
+                isSelected 
+                  ? "bg-violet-800 text-white shadow-lg shadow-violet-500/30 scale-105" 
+                  : "bg-violet-100/50 text-violet-900 hover:bg-violet-100"
+              }`}
+            >
+              <span className={`text-xs font-semibold mb-1 ${isSelected ? 'text-violet-200' : 'text-violet-500'}`}>{DAYS[idx]}</span>
+              <span className="text-xl font-bold mb-1">{date.getDate()}</span>
+              <span className={`text-xs ${isSelected ? 'text-violet-200' : 'text-violet-400'}`}>{count}</span>
+            </button>
+          );
+        })}
+      </div>
+
+      {/* Add Task */}
+      <div className="flex gap-3 mb-4">
+        <input
+          type="text"
+          value={newTaskTitle}
+          onChange={(e) => setNewTaskTitle(e.target.value)}
+          placeholder="할 일을 입력하세요"
+          className="flex-1 bg-white border-2 border-slate-100 rounded-full px-6 py-3 text-slate-800 focus:outline-none focus:border-violet-300 focus:ring-2 focus:ring-violet-100 transition-all placeholder:text-slate-400 font-medium"
+          onKeyDown={(e) => e.key === 'Enter' && handleAddTask()}
+        />
+        <button 
+          onClick={handleAddTask}
+          disabled={isPending || !newTaskTitle.trim()}
+          className="bg-violet-800 hover:bg-violet-700 text-white font-semibold rounded-full px-8 py-3 transition-colors disabled:opacity-50"
+        >
+          추가
+        </button>
+      </div>
+
+      {/* Search */}
+      <div className="relative mb-6">
+        <div className="absolute inset-y-0 left-0 pl-5 flex items-center pointer-events-none">
+          <svg className="w-5 h-5 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+          </svg>
+        </div>
+        <input
+          type="text"
+          value={searchQuery}
+          onChange={(e) => setSearchQuery(e.target.value)}
+          placeholder="검색어를 입력하세요"
+          className="w-full bg-white border-2 border-violet-200 rounded-full pl-12 pr-6 py-3 text-slate-800 focus:outline-none focus:border-violet-400 focus:ring-2 focus:ring-violet-100 transition-all placeholder:text-slate-400 font-medium"
+        />
+      </div>
+
+      {/* Filters */}
+      <div className="flex gap-2 bg-white rounded-full mb-6">
+        {[
+          { id: "all", label: "전체" },
+          { id: "active", label: "진행 중" },
+          { id: "completed", label: "완료" }
+        ].map(tab => (
+          <button
+            key={tab.id}
+            onClick={() => setFilterTab(tab.id as any)}
+            className={`flex-1 py-3 rounded-full text-sm font-bold transition-colors ${
+              filterTab === tab.id
+                ? "bg-violet-800 text-white shadow-md shadow-violet-500/20"
+                : "bg-violet-50 text-violet-600 hover:bg-violet-100"
+            }`}
+          >
+            {tab.label}
+          </button>
+        ))}
+      </div>
+
+      {/* List */}
+      <div className="flex-1 overflow-y-auto pr-2 space-y-3 custom-scrollbar">
+        {isLoading ? (
+          <div className="text-center py-10 text-slate-400 font-medium">로딩 중...</div>
+        ) : displayedTodos.length === 0 ? (
+          <div className="text-center py-10 text-slate-400 font-medium">
+            {searchQuery ? "검색 결과가 없습니다." : "이 날짜에 할 일이 없습니다."}
+          </div>
+        ) : (
+          displayedTodos.map(todo => (
+            <TodoItem key={todo.id} todo={todo} onChange={handleTaskChange} />
+          ))
+        )}
+      </div>
+    </div>
+  );
+}

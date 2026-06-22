@@ -6,6 +6,7 @@ class TodoBase(BaseModel):
     title: str
     description: Optional[str] = None
     completed: bool = False
+    date: Optional[str] = None
 
 class TodoCreate(TodoBase):
     pass
@@ -14,6 +15,7 @@ class TodoUpdate(BaseModel):
     title: Optional[str] = None
     description: Optional[str] = None
     completed: Optional[bool] = None
+    date: Optional[str] = None
 
 class TodoResponse(TodoBase):
     id: int

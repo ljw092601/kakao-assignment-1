@@ -1,8 +1,13 @@
 from sqlalchemy.orm import Session
 import models, schemas
 
-def get_todos(db: Session, skip: int = 0, limit: int = 100):
-    return db.query(models.Todo).offset(skip).limit(limit).all()
+def get_todos(db: Session, skip: int = 0, limit: int = 100, start_date: str = None, end_date: str = None):
+    query = db.query(models.Todo)
+    if start_date:
+        query = query.filter(models.Todo.date >= start_date)
+    if end_date:
+        query = query.filter(models.Todo.date <= end_date)
+    return query.offset(skip).limit(limit).all()
 
 def get_todo(db: Session, todo_id: int):
     return db.query(models.Todo).filter(models.Todo.id == todo_id).first()

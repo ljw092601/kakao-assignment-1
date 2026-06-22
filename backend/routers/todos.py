@@ -12,8 +12,8 @@ router = APIRouter(
 )
 
 @router.get("/", response_model=List[schemas.TodoResponse])
-def read_todos(skip: int = 0, limit: int = 100, db: Session = Depends(get_db)):
-    todos = crud.get_todos(db, skip=skip, limit=limit)
+def read_todos(skip: int = 0, limit: int = 100, start_date: str = None, end_date: str = None, db: Session = Depends(get_db)):
+    todos = crud.get_todos(db, skip=skip, limit=limit, start_date=start_date, end_date=end_date)
     return todos
 
 @router.get("/{todo_id}", response_model=schemas.TodoResponse)

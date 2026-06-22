@@ -3,11 +3,12 @@ export interface Todo {
   title: string;
   description: string | null;
   completed: boolean;
+  date: string | null;
   created_at: string;
   updated_at: string;
 }
 
-export type TodoCreate = Pick<Todo, 'title' | 'description'> & {
+export type TodoCreate = Pick<Todo, 'title' | 'description' | 'date'> & {
   completed?: boolean;
 };
 

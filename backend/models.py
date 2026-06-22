@@ -10,5 +10,6 @@ class Todo(Base):
     title = Column(String, index=True, nullable=False)
     description = Column(String, nullable=True)
     completed = Column(Boolean, default=False)
+    date = Column(String, index=True, nullable=True)
     created_at = Column(DateTime, default=datetime.utcnow)
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
