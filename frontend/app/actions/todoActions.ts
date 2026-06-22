@@ -6,10 +6,10 @@ import { Todo, TodoCreate, TodoUpdate } from "../types/todo";
 const API_URL = process.env.API_URL || "http://127.0.0.1:8000/todos";
 
 export async function getTodos(startDate?: string, endDate?: string): Promise<Todo[]> {
-  let url = `${API_URL}/`;
-  if (startDate && endDate) {
-    url += `?start_date=${startDate}&end_date=${endDate}`;
-  }
+  let url = `${API_URL}/?`;
+  if (startDate) url += `start_date=${startDate}&`;
+  if (endDate) url += `end_date=${endDate}&`;
+  
   const res = await fetch(url, {
     cache: "no-store", // Always fetch latest
   });

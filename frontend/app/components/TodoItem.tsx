@@ -51,14 +51,19 @@ export default function TodoItem({ todo, onChange }: Props) {
         )}
       </button>
 
-      <div className="flex-1 min-w-0">
+      <div className="flex-1 min-w-0 flex items-baseline gap-3">
         <h3
-          className={`text-base font-semibold truncate transition-all ${
+          className={`text-base font-semibold truncate shrink-0 max-w-[60%] sm:max-w-[75%] transition-all ${
             todo.completed ? "line-through text-slate-400" : "text-slate-700"
           }`}
         >
           {todo.title}
         </h3>
+        {todo.description && (
+          <span className="text-sm text-slate-400 truncate flex-1 min-w-0">
+            {todo.description}
+          </span>
+        )}
       </div>
 
       <div className="flex shrink-0 items-center gap-2">

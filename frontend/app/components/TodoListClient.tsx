@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useTransition } from "react";
+import Link from "next/link";
 import { Todo } from "../types/todo";
 import { getTodos, createTodo } from "../actions/todoActions";
 import TodoItem from "./TodoItem";
@@ -106,11 +107,11 @@ export default function TodoListClient() {
     .filter(t => t.title.toLowerCase().includes(searchQuery.toLowerCase()));
 
   return (
-    <div className="max-w-2xl mx-auto bg-white min-h-[800px] rounded-[40px] shadow-2xl overflow-hidden flex flex-col p-8 border border-slate-100">
-      <h1 className="text-3xl font-extrabold text-center text-violet-800 italic mb-8 tracking-tight">Todo List</h1>
+    <div className="max-w-2xl mx-auto bg-white h-[800px] max-h-[90vh] rounded-[40px] shadow-2xl overflow-hidden flex flex-col p-8 border border-slate-100">
+      <h1 className="text-3xl font-extrabold text-center text-violet-800 italic mb-8 tracking-tight shrink-0">Todo List</h1>
 
       {/* Week Navigation */}
-      <div className="flex items-center justify-between mb-6 px-2">
+      <div className="flex items-center justify-between mb-6 px-2 shrink-0">
         <button onClick={handlePrevWeek} className="text-violet-800 hover:text-violet-600 p-2">
           <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M12.707 5.293a1 1 0 010 1.414L9.414 10l3.293 3.293a1 1 0 01-1.414 1.414l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 0z" clipRule="evenodd" /></svg>
         </button>
@@ -121,7 +122,7 @@ export default function TodoListClient() {
       </div>
 
       {/* Calendar Days */}
-      <div className="flex justify-between gap-2 mb-8">
+      <div className="flex justify-between gap-2 mb-8 shrink-0">
         {weekDates.map((date, idx) => {
           const dateStr = formatDate(date);
           const isSelected = dateStr === selectedDate;
@@ -145,27 +146,24 @@ export default function TodoListClient() {
         })}
       </div>
 
-      {/* Add Task */}
-      <div className="flex gap-3 mb-4">
-        <input
-          type="text"
-          value={newTaskTitle}
-          onChange={(e) => setNewTaskTitle(e.target.value)}
-          placeholder="할 일을 입력하세요"
-          className="flex-1 bg-white border-2 border-slate-100 rounded-full px-6 py-3 text-slate-800 focus:outline-none focus:border-violet-300 focus:ring-2 focus:ring-violet-100 transition-all placeholder:text-slate-400 font-medium"
-          onKeyDown={(e) => e.key === 'Enter' && handleAddTask()}
-        />
-        <button 
-          onClick={handleAddTask}
-          disabled={isPending || !newTaskTitle.trim()}
-          className="bg-violet-800 hover:bg-violet-700 text-white font-semibold rounded-full px-8 py-3 transition-colors disabled:opacity-50"
+      {/* Action Buttons */}
+      <div className="flex gap-3 mb-6 shrink-0">
+        <Link 
+          href={`/todos/new?date=${selectedDate}`}
+          className="flex-1 bg-violet-800 hover:bg-violet-700 text-white text-center font-bold rounded-2xl px-8 py-4 transition-all shadow-md shadow-violet-500/20 hover:shadow-lg hover:-translate-y-0.5"
         >
-          추가
-        </button>
+          할 일 추가
+        </Link>
+        <Link 
+          href="/upcoming"
+          className="flex-1 bg-violet-100 hover:bg-violet-200 text-violet-800 text-center font-bold rounded-2xl px-8 py-4 transition-all hover:-translate-y-0.5 flex items-center justify-center"
+        >
+          다가오는 목록
+        </Link>
       </div>
 
       {/* Search */}
-      <div className="relative mb-6">
+      <div className="relative mb-6 shrink-0">
         <div className="absolute inset-y-0 left-0 pl-5 flex items-center pointer-events-none">
           <svg className="w-5 h-5 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
@@ -181,7 +179,7 @@ export default function TodoListClient() {
       </div>
 
       {/* Filters */}
-      <div className="flex gap-2 bg-white rounded-full mb-6">
+      <div className="flex gap-2 bg-white rounded-full mb-6 shrink-0">
         {[
           { id: "all", label: "전체" },
           { id: "active", label: "진행 중" },
