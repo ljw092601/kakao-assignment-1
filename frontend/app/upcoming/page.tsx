@@ -46,7 +46,7 @@ export default function UpcomingPage() {
 
   return (
     <main className="w-full max-w-4xl mx-auto p-6 md:p-10 min-h-screen">
-      <div className="max-w-2xl mx-auto bg-white h-[800px] max-h-[90vh] rounded-[40px] shadow-2xl overflow-hidden flex flex-col p-8 border border-slate-100">
+      <div className="max-w-2xl mx-auto bg-white h-[850px] max-h-[90vh] rounded-[40px] shadow-2xl overflow-hidden flex flex-col p-8 border border-slate-100">
         
         <div className="flex items-center gap-4 mb-8 shrink-0">
           <Link href="/todos" className="text-violet-400 hover:text-violet-600 transition-colors p-2 bg-violet-50 rounded-full">

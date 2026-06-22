@@ -90,6 +90,9 @@ export default function TodoListClient() {
   };
 
   // Derived state
+  const totalTasks = todos.length;
+  const completedTasks = todos.filter(t => t.completed).length;
+
   const countsByDate = todos.reduce((acc, todo) => {
     if (todo.date) {
       acc[todo.date] = (acc[todo.date] || 0) + 1;
@@ -107,7 +110,7 @@ export default function TodoListClient() {
     .filter(t => t.title.toLowerCase().includes(searchQuery.toLowerCase()));
 
   return (
-    <div className="max-w-2xl mx-auto bg-white h-[800px] max-h-[90vh] rounded-[40px] shadow-2xl overflow-hidden flex flex-col p-8 border border-slate-100">
+    <div className="max-w-2xl mx-auto bg-white h-[850px] max-h-[90vh] rounded-[40px] shadow-2xl overflow-hidden flex flex-col p-8 border border-slate-100">
       <h1 className="text-3xl font-extrabold text-center text-violet-800 italic mb-8 tracking-tight shrink-0">Todo List</h1>
 
       {/* Week Navigation */}
@@ -122,7 +125,7 @@ export default function TodoListClient() {
       </div>
 
       {/* Calendar Days */}
-      <div className="flex justify-between gap-2 mb-8 shrink-0">
+      <div className="flex justify-between gap-2 mb-6 shrink-0">
         {weekDates.map((date, idx) => {
           const dateStr = formatDate(date);
           const isSelected = dateStr === selectedDate;
@@ -144,6 +147,20 @@ export default function TodoListClient() {
             </button>
           );
         })}
+      </div>
+
+      {/* Weekly Progress Bar */}
+      <div className="mb-8 shrink-0 px-2">
+        <div className="flex justify-between items-end mb-2">
+          <span className="text-sm font-bold text-slate-500">주간 달성률</span>
+          <span className="text-lg font-extrabold text-violet-800">{totalTasks === 0 ? 0 : Math.round((completedTasks / totalTasks) * 100)}%</span>
+        </div>
+        <div className="h-3 w-full bg-violet-100 rounded-full overflow-hidden shadow-inner">
+          <div 
+            className="h-full bg-gradient-to-r from-violet-500 to-fuchsia-500 transition-all duration-500 ease-out rounded-full" 
+            style={{ width: `${totalTasks === 0 ? 0 : Math.round((completedTasks / totalTasks) * 100)}%` }} 
+          />
+        </div>
       </div>
 
       {/* Action Buttons */}
