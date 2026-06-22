@@ -1,6 +1,6 @@
 "use client";
 
-import { useTransition } from "react";
+import { useState, useTransition } from "react";
 import Link from "next/link";
 import { Todo } from "../types/todo";
 import { updateTodo, deleteTodo } from "../actions/todoActions";
@@ -8,20 +8,31 @@ import { updateTodo, deleteTodo } from "../actions/todoActions";
 interface Props {
   todo: Todo;
   onChange?: () => void;
+  onOptimisticUpdate?: (todo: Todo) => void;
 }
 
-export default function TodoItem({ todo, onChange }: Props) {
+export default function TodoItem({ todo, onChange, onOptimisticUpdate }: Props) {
   const [isPending, startTransition] = useTransition();
+  const [isDeleting, setIsDeleting] = useState(false);
 
   const toggleCompleted = () => {
+    const updatedTodo = { ...todo, completed: !todo.completed };
+    onOptimisticUpdate?.(updatedTodo); // Optimistically update parent
+    
     startTransition(async () => {
-      await updateTodo(todo.id, { completed: !todo.completed });
-      onChange?.();
+      try {
+        await updateTodo(todo.id, { completed: updatedTodo.completed });
+      } catch (err) {
+        console.error("Failed to update status");
+      } finally {
+        onChange?.(); // Background sync
+      }
     });
   };
 
   const handleDelete = () => {
     if (confirm("정말 삭제하시겠습니까?")) {
+      setIsDeleting(true);
       startTransition(async () => {
         await deleteTodo(todo.id);
         onChange?.();
@@ -32,12 +43,12 @@ export default function TodoItem({ todo, onChange }: Props) {
   return (
     <div
       className={`bg-violet-50 p-4 rounded-2xl flex items-center gap-4 transition-all duration-300 ${
-        isPending ? "opacity-50" : "hover:-translate-y-0.5 hover:shadow-md"
+        isDeleting ? "opacity-50 scale-95" : "hover:-translate-y-0.5 hover:shadow-md"
       } ${todo.completed ? "opacity-60" : ""}`}
     >
       <button
         onClick={toggleCompleted}
-        disabled={isPending}
+        disabled={isDeleting}
         className={`w-6 h-6 rounded-full border-2 flex shrink-0 items-center justify-center transition-colors ${
           todo.completed
             ? "bg-violet-600 border-violet-600"

@@ -38,7 +38,6 @@ export default function TodoListClient() {
   const [searchQuery, setSearchQuery] = useState("");
   const [filterTab, setFilterTab] = useState<"all" | "active" | "completed">("all");
   const [todos, setTodos] = useState<Todo[]>([]);
-  const [newTaskTitle, setNewTaskTitle] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [isPending, startTransition] = useTransition();
 
@@ -46,20 +45,20 @@ export default function TodoListClient() {
   const startDateStr = formatDate(weekDates[0]);
   const endDateStr = formatDate(weekDates[6]);
 
-  const fetchTodos = async () => {
-    setIsLoading(true);
+  const fetchTodos = async (showLoading = true) => {
+    if (showLoading) setIsLoading(true);
     try {
       const data = await getTodos(startDateStr, endDateStr);
       setTodos(data);
     } catch (err) {
       console.error(err);
     } finally {
-      setIsLoading(false);
+      if (showLoading) setIsLoading(false);
     }
   };
 
   useEffect(() => {
-    fetchTodos();
+    fetchTodos(true);
   }, [startDateStr, endDateStr]);
 
   const handlePrevWeek = () => {
@@ -73,20 +72,13 @@ export default function TodoListClient() {
     next.setDate(next.getDate() + 7);
     setCurrentWeekBase(next);
   };
-
-  const handleAddTask = () => {
-    if (!newTaskTitle.trim()) return;
-    
-    startTransition(async () => {
-      await createTodo({ title: newTaskTitle, date: selectedDate });
-      setNewTaskTitle("");
-      await fetchTodos();
-    });
+  const handleTaskChange = () => {
+    // Refresh the list silently in the background
+    fetchTodos(false);
   };
 
-  const handleTaskChange = () => {
-    // Refresh the list when a task changes (like delete or toggle completion)
-    fetchTodos();
+  const handleOptimisticUpdate = (updatedTodo: Todo) => {
+    setTodos(prev => prev.map(t => t.id === updatedTodo.id ? updatedTodo : t));
   };
 
   // Derived state
@@ -226,7 +218,12 @@ export default function TodoListClient() {
           </div>
         ) : (
           displayedTodos.map(todo => (
-            <TodoItem key={todo.id} todo={todo} onChange={handleTaskChange} />
+            <TodoItem 
+              key={todo.id} 
+              todo={todo} 
+              onChange={handleTaskChange} 
+              onOptimisticUpdate={handleOptimisticUpdate}
+            />
           ))
         )}
       </div>

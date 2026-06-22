@@ -18,13 +18,12 @@ export default function UpcomingPage() {
   const [todos, setTodos] = useState<Todo[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
-  const fetchUpcomingTodos = async () => {
-    setIsLoading(true);
+  const fetchUpcomingTodos = async (showLoading = true) => {
+    if (showLoading) setIsLoading(true);
     try {
       const today = getTodayDateStr();
       const data = await getTodos(today);
       
-      // Filter out completed tasks and sort by date ascending
       const upcoming = data
         .filter(t => !t.completed && t.date && t.date >= today)
         .sort((a, b) => {
@@ -36,13 +35,21 @@ export default function UpcomingPage() {
     } catch (err) {
       console.error(err);
     } finally {
-      setIsLoading(false);
+      if (showLoading) setIsLoading(false);
     }
   };
 
   useEffect(() => {
-    fetchUpcomingTodos();
+    fetchUpcomingTodos(true);
   }, []);
+
+  const handleTaskChange = () => {
+    fetchUpcomingTodos(false);
+  };
+
+  const handleOptimisticUpdate = (updatedTodo: Todo) => {
+    setTodos(prev => prev.map(t => t.id === updatedTodo.id ? updatedTodo : t));
+  };
 
   return (
     <main className="w-full max-w-4xl mx-auto p-6 md:p-10 min-h-screen">
@@ -70,7 +77,11 @@ export default function UpcomingPage() {
             todos.map(todo => (
               <div key={todo.id}>
                 <div className="text-xs font-bold text-violet-400 mb-1 ml-2">{todo.date}</div>
-                <TodoItem todo={todo} onChange={fetchUpcomingTodos} />
+                <TodoItem 
+                  todo={todo} 
+                  onChange={handleTaskChange} 
+                  onOptimisticUpdate={handleOptimisticUpdate}
+                />
               </div>
             ))
           )}
