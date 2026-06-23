@@ -7,7 +7,7 @@ import { updateTodo, deleteTodo } from "../actions/todoActions";
 
 interface Props {
   todo: Todo;
-  onChange?: () => void;
+  onChange?: (action?: "update" | "delete") => void;
   onOptimisticUpdate?: (todo: Todo) => void;
 }
 
@@ -25,7 +25,7 @@ export default function TodoItem({ todo, onChange, onOptimisticUpdate }: Props) 
       } catch (err) {
         console.error("Failed to update status");
       } finally {
-        onChange?.(); // Background sync
+        onChange?.("update"); // Background sync
       }
     });
   };
@@ -35,7 +35,7 @@ export default function TodoItem({ todo, onChange, onOptimisticUpdate }: Props) 
       setIsDeleting(true);
       startTransition(async () => {
         await deleteTodo(todo.id);
-        onChange?.();
+        onChange?.("delete");
       });
     }
   };

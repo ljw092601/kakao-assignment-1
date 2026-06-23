@@ -38,7 +38,7 @@ export default function TodoForm({ initialData }: Props) {
         } else {
           await createTodo({ title, description: description || null, date: dateStr || null });
         }
-        router.push("/todos");
+        router.back();
       } catch (err) {
         setError("Something went wrong. Please try again.");
       }

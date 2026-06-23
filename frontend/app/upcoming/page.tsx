@@ -43,8 +43,10 @@ export default function UpcomingPage() {
     fetchUpcomingTodos(true);
   }, []);
 
-  const handleTaskChange = () => {
-    fetchUpcomingTodos(false);
+  const handleTaskChange = (action?: "update" | "delete") => {
+    if (action === "delete") {
+      fetchUpcomingTodos(false);
+    }
   };
 
   const handleOptimisticUpdate = (updatedTodo: Todo) => {
